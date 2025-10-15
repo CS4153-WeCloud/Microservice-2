@@ -1,7 +1,7 @@
 {
   "name": "order-service",
   "version": "1.0.0",
-  "description": "Order Management Microservice with OpenAPI documentation",
+  "description": "WeCloud Logistics - Order Management Microservice with OpenAPI documentation",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
