@@ -1,14 +1,18 @@
 {
-  "name": "order-service",
+  "name": "route-and-group-service",
   "version": "1.0.0",
-  "description": "WeCloud Logistics - Order Management Microservice with OpenAPI documentation",
+  "description": "WeCloud Logistics - Route and Group Microservice with OpenAPI documentation",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
     "generate-docs": "node src/utils/generateOpenAPI.js"
   },
-  "keywords": ["microservice", "order", "rest-api"],
+  "keywords": [
+    "microservice",
+    "route",
+    "rest-api"
+  ],
   "author": "",
   "license": "MIT",
   "dependencies": {
@@ -19,7 +23,8 @@
     "swagger-ui-express": "^5.0.0",
     "swagger-jsdoc": "^6.2.8",
     "axios": "^1.5.0",
-    "uuid": "^9.0.0"
+    "uuid": "^9.0.0",
+    "mysql2": "^2.3.3"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
