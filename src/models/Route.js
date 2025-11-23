@@ -6,14 +6,16 @@ function toCamelCase(row) {
   if (!row) return null;
   return {
     id: row.id,
-    fromLocation: row.from_location,
-    toLocation: row.to_location,
+    from: row.from_location,
+    to: row.to_location,
     status: row.status,
-    scheduleDays: typeof row.schedule_days === 'string' 
-      ? JSON.parse(row.schedule_days) 
-      : row.schedule_days,
-    morningTime: row.morning_time,
-    eveningTime: row.evening_time,
+    schedule: {
+      days: typeof row.schedule_days === 'string' 
+        ? JSON.parse(row.schedule_days) 
+        : row.schedule_days,
+      morningTime: row.morning_time,
+      eveningTime: row.evening_time
+    },
     semester: row.semester,
     currentMembers: row.current_members,
     requiredMembers: row.required_members,
@@ -22,8 +24,6 @@ function toCamelCase(row) {
     createdBy: row.created_by,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
-    version: row.version, // For eTag support
-    // Add linked data
     links: {
       self: `/routes/${row.id}`,
       members: `/routes/${row.id}/members`,
