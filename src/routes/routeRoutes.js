@@ -257,8 +257,7 @@ router.post('/', async (req, res) => {
             createdBy
         } = req.body;
 
-        if (!from || !to || !schedule?.days || !schedule?.morningTime ||
-            !schedule?.eveningTime || !semester || !createdBy) {
+        if (!from || !to || !schedule?.days || !schedule?.morningTime || !schedule?.eveningTime || !semester || createdBy === undefined) {
             return res.status(400).json({
                 success: false,
                 error: 'Missing required fields: from, to, schedule (days, morningTime, eveningTime), semester, createdBy'
@@ -333,20 +332,21 @@ router.post('/', async (req, res) => {
  *       content:
  *         application/json:
  *           schema:
- *             type: object
  *             properties:
- *               fromLocation:
+ *               from:
  *                 type: string
- *               toLocation:
+ *               to:
  *                 type: string
- *               scheduleDays:
- *                 type: array
- *                 items:
- *                   type: string
- *               morningTime:
- *                 type: string
- *               eveningTime:
- *                 type: string
+ *               schedule:
+ *                 type: object
+ *                 properties:
+ *                   days:
+ *                     type: array
+ *                     items: { 'type': 'string' }
+ *                   morningTime:
+ *                     type: string
+ *                   eveningTime:
+ *                     type: string
  *               semester:
  *                 type: string
  *               estimatedCost:
@@ -355,17 +355,18 @@ router.post('/', async (req, res) => {
  *                 type: string
  *               status:
  *                 type: string
+ *                 enum: [proposed, active, completed, cancelled]
  *     responses:
  *       200:
  *         description: Route updated successfully
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Route'
+ *               $ref: '#/components/schemas/SuccessRouteResponse'
  *       404:
  *         description: Route not found
  *       412:
- *         description: Precondition Failed - ETag mismatch
+ *         $ref: '#/components/responses/PreconditionFailed'
  *       500:
  *         description: Server error
  */
@@ -394,7 +395,10 @@ router.put('/:id', async (req, res) => {
 
         try {
             const updatedRoute = await Route.update(req.params.id, updateData, ifMatch);
-            res.json(updatedRoute);
+            res.json({
+                success: true,
+                route: updatedRoute
+            });
         } catch (error) {
             if (error.message === 'ETag mismatch - resource has been modified') {
                 return res.status(412).json({
