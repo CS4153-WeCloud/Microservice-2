@@ -56,23 +56,23 @@ async function verifyUser(userId) {
  *         name: sortBy
  *         schema:
  *           type: string
- *         description: Sort field (default: created_at)
+ *         description: "Sort field (default: created_at)"
  *       - in: query
  *         name: sortOrder
  *         schema:
  *           type: string
  *           enum: [ASC, DESC]
- *         description: Sort order (default: DESC)
+ *         description: "Sort order (default: DESC)"
  *       - in: query
  *         name: page
  *         schema:
  *           type: integer
- *         description: Page number for pagination (default: 1)
+ *         description: "Page number for pagination (default: 1)"
  *       - in: query
  *         name: page_size
  *         schema:
  *           type: integer
- *         description: Number of items per page (default: 20)
+ *         description: "Number of items per page (default: 20)"
  *     responses:
  *       200:
  *         description: List of routes retrieved successfully (with pagination metadata)
