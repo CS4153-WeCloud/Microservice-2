@@ -107,7 +107,7 @@ router.get('/', async (req, res) => {
         };
 
         const result = await Route.findAll(filters);
-        
+
         // CHANGED: Wrap in success object
         res.json({
             success: true,
@@ -116,10 +116,10 @@ router.get('/', async (req, res) => {
         });
     } catch (error) {
         console.error('GET /api/routes error:', error);
-        res.status(500).json({ 
+        res.status(500).json({
             success: false,  // ADDED
-            error: 'Failed to fetch routes', 
-            message: error.message 
+            error: 'Failed to fetch routes',
+            message: error.message
         });
     }
 });
@@ -159,9 +159,9 @@ router.get('/:id', async (req, res) => {
     try {
         const route = await Route.findById(req.params.id);
         if (!route) {
-            return res.status(404).json({ 
+            return res.status(404).json({
                 success: false,
-                error: 'Route not found' 
+                error: 'Route not found'
             });
         }
 
@@ -169,10 +169,10 @@ router.get('/:id', async (req, res) => {
         res.json(route);
     } catch (error) {
         console.error(`GET /api/routes/${req.params.id} error:`, error);
-        res.status(500).json({ 
+        res.status(500).json({
             success: false,
-            error: 'Failed to fetch route', 
-            message: error.message 
+            error: 'Failed to fetch route',
+            message: error.message
         });
     }
 });
@@ -189,41 +189,37 @@ router.get('/:id', async (req, res) => {
  *       content:
  *         application/json:
  *           schema:
- *             type: object
  *             required:
- *               - fromLocation
- *               - toLocation
- *               - scheduleDays
- *               - morningTime
- *               - eveningTime
+ *               - from
+ *               - to
+ *               - schedule
  *               - semester
  *               - createdBy
  *             properties:
- *               fromLocation:
+ *               from:
  *                 type: string
  *                 example: "Columbia University"
- *               toLocation:
+ *               to:
  *                 type: string
  *                 example: "Flushing, Queens"
- *               scheduleDays:
- *                 type: array
- *                 items:
- *                   type: string
- *                 example: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
- *               morningTime:
- *                 type: string
- *                 format: time
- *                 example: "08:00:00"
- *               eveningTime:
- *                 type: string
- *                 format: time
- *                 example: "18:30:00"
+ *               schedule:
+ *                 type: object
+ *                 properties:
+ *                   days:
+ *                     type: array
+ *                     items: { 'type': 'string' }
+ *                     example: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+ *                   morningTime:
+ *                     type: string
+ *                     format: time
+ *                     example: "08:00:00"
+ *                   eveningTime:
+ *                     type: string
+ *                     format: time
+ *                     example: "18:30:00"
  *               semester:
  *                 type: string
  *                 example: "Fall 2025"
- *               requiredMembers:
- *                 type: integer
- *                 example: 15
  *               estimatedCost:
  *                 type: number
  *                 example: 120.00
@@ -242,7 +238,7 @@ router.get('/:id', async (req, res) => {
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Route'
+ *               $ref: '#/components/schemas/SuccessRouteResponse'
  *       400:
  *         description: Invalid input or user not found
  *       500:
@@ -261,7 +257,7 @@ router.post('/', async (req, res) => {
             createdBy
         } = req.body;
 
-        if (!from || !to || !schedule?.days || !schedule?.morningTime || 
+        if (!from || !to || !schedule?.days || !schedule?.morningTime ||
             !schedule?.eveningTime || !semester || !createdBy) {
             return res.status(400).json({
                 success: false,
@@ -270,17 +266,17 @@ router.post('/', async (req, res) => {
         }
 
         if (!Array.isArray(schedule.days) || schedule.days.length === 0) {
-            return res.status(400).json({ 
+            return res.status(400).json({
                 success: false,
-                error: 'schedule.days must be a non-empty array' 
+                error: 'schedule.days must be a non-empty array'
             });
         }
 
         const user = await verifyUser(createdBy);
         if (!user) {
-            return res.status(400).json({ 
+            return res.status(400).json({
                 success: false,
-                error: 'Creator user not found' 
+                error: 'Creator user not found'
             });
         }
 
@@ -305,10 +301,10 @@ router.post('/', async (req, res) => {
         });
     } catch (error) {
         console.error('POST /api/routes error:', error);
-        res.status(500).json({ 
+        res.status(500).json({
             success: false,
-            error: 'Failed to create route', 
-            message: error.message 
+            error: 'Failed to create route',
+            message: error.message
         });
     }
 });
@@ -377,9 +373,9 @@ router.put('/:id', async (req, res) => {
     try {
         const route = await Route.findById(req.params.id);
         if (!route) {
-            return res.status(404).json({ 
+            return res.status(404).json({
                 success: false,
-                error: 'Route not found' 
+                error: 'Route not found'
             });
         }
 
@@ -411,10 +407,10 @@ router.put('/:id', async (req, res) => {
         }
     } catch (error) {
         console.error(`PUT /api/routes/${req.params.id} error:`, error);
-        res.status(500).json({ 
+        res.status(500).json({
             success: false,
-            error: 'Failed to update route', 
-            message: error.message 
+            error: 'Failed to update route',
+            message: error.message
         });
     }
 });
@@ -445,23 +441,23 @@ router.delete('/:id', async (req, res) => {
     try {
         const route = await Route.findById(req.params.id);
         if (!route) {
-            return res.status(404).json({ 
+            return res.status(404).json({
                 success: false,
-                error: 'Route not found' 
+                error: 'Route not found'
             });
         }
 
         await Route.delete(req.params.id);
-        res.json({ 
+        res.json({
             success: true,
-            message: 'Route deleted successfully' 
+            message: 'Route deleted successfully'
         });
     } catch (error) {
         console.error(`DELETE /api/routes/${req.params.id} error:`, error);
-        res.status(500).json({ 
+        res.status(500).json({
             success: false,
-            error: 'Failed to delete route', 
-            message: error.message 
+            error: 'Failed to delete route',
+            message: error.message
         });
     }
 });
@@ -505,9 +501,9 @@ router.patch('/:id/status', async (req, res) => {
         const { status } = req.body;
 
         if (!status) {
-            return res.status(400).json({ 
+            return res.status(400).json({
                 success: false,
-                error: 'Status is required' 
+                error: 'Status is required'
             });
         }
 
@@ -522,9 +518,9 @@ router.patch('/:id/status', async (req, res) => {
 
         const route = await Route.findById(req.params.id);
         if (!route) {
-            return res.status(404).json({ 
+            return res.status(404).json({
                 success: false,
-                error: 'Route not found' 
+                error: 'Route not found'
             });
         }
 
@@ -532,10 +528,10 @@ router.patch('/:id/status', async (req, res) => {
         res.json(updatedRoute);
     } catch (error) {
         console.error(`PATCH /api/routes/${req.params.id}/status error:`, error);
-        res.status(500).json({ 
+        res.status(500).json({
             success: false,
-            error: 'Failed to update route status', 
-            message: error.message 
+            error: 'Failed to update route status',
+            message: error.message
         });
     }
 });
@@ -644,25 +640,25 @@ router.delete('/:id/leave', async (req, res) => {
         const { userId } = req.query;
 
         if (!userId) {
-            return res.status(400).json({ 
+            return res.status(400).json({
                 success: false,
-                error: 'userId is required' 
+                error: 'userId is required'
             });
         }
 
         const route = await Route.findById(req.params.id);
         if (!route) {
-            return res.status(404).json({ 
+            return res.status(404).json({
                 success: false,
-                error: 'Route not found' 
+                error: 'Route not found'
             });
         }
 
         const isMember = await Route.isMember(req.params.id, userId);
         if (!isMember) {
-            return res.status(400).json({ 
+            return res.status(400).json({
                 success: false,
-                error: 'User is not a member of this route' 
+                error: 'User is not a member of this route'
             });
         }
 
@@ -674,10 +670,10 @@ router.delete('/:id/leave', async (req, res) => {
         });
     } catch (error) {
         console.error(`DELETE /api/routes/${req.params.id}/leave error:`, error);
-        res.status(500).json({ 
+        res.status(500).json({
             success: false,
-            error: 'Failed to leave route', 
-            message: error.message 
+            error: 'Failed to leave route',
+            message: error.message
         });
     }
 });
@@ -713,9 +709,9 @@ router.get('/:id/members', async (req, res) => {
     try {
         const route = await Route.findById(req.params.id);
         if (!route) {
-            return res.status(404).json({ 
+            return res.status(404).json({
                 success: false,
-                error: 'Route not found' 
+                error: 'Route not found'
             });
         }
 
@@ -731,10 +727,10 @@ router.get('/:id/members', async (req, res) => {
         });
     } catch (error) {
         console.error(`GET /api/routes/${req.params.id}/members error:`, error);
-        res.status(500).json({ 
+        res.status(500).json({
             success: false,
-            error: 'Failed to fetch route members', 
-            message: error.message 
+            error: 'Failed to fetch route members',
+            message: error.message
         });
     }
 });
@@ -783,82 +779,82 @@ const activationTasks = {};
  *         description: Route cannot be activated (e.g., already active)
  */
 router.post('/:id/activate', async (req, res) => {
-  try {
-    const route = await Route.findById(req.params.id);
-    if (!route) {
-      return res.status(404).json({ 
-          success: false,
-          error: 'Route not found' 
-      });
-    }
+    try {
+        const route = await Route.findById(req.params.id);
+        if (!route) {
+            return res.status(404).json({
+                success: false,
+                error: 'Route not found'
+            });
+        }
 
-    if (route.status === 'active') {
-      return res.status(400).json({ 
-          success: false,
-          error: 'Route is already active' 
-      });
-    }
+        if (route.status === 'active') {
+            return res.status(400).json({
+                success: false,
+                error: 'Route is already active'
+            });
+        }
 
-    if (route.currentMembers < route.requiredMembers) {
-      return res.status(400).json({ 
-        success: false,
-        error: 'Route does not have enough members to activate',
-        currentMembers: route.currentMembers,
-        requiredMembers: route.requiredMembers
-      });
-    }
+        if (route.currentMembers < route.requiredMembers) {
+            return res.status(400).json({
+                success: false,
+                error: 'Route does not have enough members to activate',
+                currentMembers: route.currentMembers,
+                requiredMembers: route.requiredMembers
+            });
+        }
 
-    const taskId = `activation-${req.params.id}-${Date.now()}`;
-    activationTasks[taskId] = { 
-      status: 'pending', 
-      routeId: req.params.id,
-      startedAt: new Date().toISOString(),
-      details: 'Activation checks are running.' 
-    };
-
-    setTimeout(async () => {
-      try {
-        await Route.updateStatus(req.params.id, 'active');
-        
+        const taskId = `activation-${req.params.id}-${Date.now()}`;
         activationTasks[taskId] = {
-          status: 'success',
-          routeId: req.params.id,
-          startedAt: activationTasks[taskId].startedAt,
-          completedAt: new Date().toISOString(),
-          details: 'Route successfully activated',
-          route: await Route.findById(req.params.id)
+            status: 'pending',
+            routeId: req.params.id,
+            startedAt: new Date().toISOString(),
+            details: 'Activation checks are running.'
         };
-      } catch (error) {
-        activationTasks[taskId] = {
-          status: 'failed',
-          routeId: req.params.id,
-          startedAt: activationTasks[taskId].startedAt,
-          completedAt: new Date().toISOString(),
-          details: `Activation failed: ${error.message}`,
-          error: error.message
-        };
-      }
-    }, 3000);
 
-    const statusUrl = `/api/route-activations/${taskId}`;
-    
-    res.status(202)
-       .setHeader('Location', statusUrl)
-       .json({ 
-         success: true,
-         taskId, 
-         status: 'pending',
-         statusUrl,
-         message: 'Route activation has been queued for processing'
-       });
-  } catch (error) {
-    console.error(`POST /api/routes/${req.params.id}/activate error:`, error);
-    res.status(500).json({ 
-        success: false,
-        error: 'Failed to queue route activation', 
-        message: error.message 
-    });
-  }
+        setTimeout(async () => {
+            try {
+                await Route.updateStatus(req.params.id, 'active');
+
+                activationTasks[taskId] = {
+                    status: 'success',
+                    routeId: req.params.id,
+                    startedAt: activationTasks[taskId].startedAt,
+                    completedAt: new Date().toISOString(),
+                    details: 'Route successfully activated',
+                    route: await Route.findById(req.params.id)
+                };
+            } catch (error) {
+                activationTasks[taskId] = {
+                    status: 'failed',
+                    routeId: req.params.id,
+                    startedAt: activationTasks[taskId].startedAt,
+                    completedAt: new Date().toISOString(),
+                    details: `Activation failed: ${error.message}`,
+                    error: error.message
+                };
+            }
+        }, 3000);
+
+        const statusUrl = `/api/route-activations/${taskId}`;
+
+        res.status(202)
+            .setHeader('Location', statusUrl)
+            .json({
+                success: true,
+                taskId,
+                status: 'pending',
+                statusUrl,
+                message: 'Route activation has been queued for processing'
+            });
+    } catch (error) {
+        console.error(`POST /api/routes/${req.params.id}/activate error:`, error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to queue route activation',
+            message: error.message
+        });
+    }
 });
 
 /**
@@ -904,21 +900,21 @@ router.post('/:id/activate', async (req, res) => {
  *         description: Task not found
  */
 router.get('/route-activations/:taskId', (req, res) => {
-  const { taskId } = req.params;
-  const task = activationTasks[taskId];
-  
-  if (!task) {
-    return res.status(404).json({ 
-        success: false,
-        error: 'Activation task not found' 
+    const { taskId } = req.params;
+    const task = activationTasks[taskId];
+
+    if (!task) {
+        return res.status(404).json({
+            success: false,
+            error: 'Activation task not found'
+        });
+    }
+
+    res.json({
+        success: true,
+        taskId,
+        ...task
     });
-  }
-  
-  res.json({
-    success: true,
-    taskId,
-    ...task
-  });
 });
 
 module.exports = router;

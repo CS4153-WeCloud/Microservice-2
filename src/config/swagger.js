@@ -4,9 +4,9 @@ const options = {
   definition: {
     openapi: '3.0.0',
     info: {
-      title: 'Order Service API',
+      title: 'Route & Group Service API',
       version: '1.0.0',
-      description: 'RESTful API for Order Management',
+      description: 'RESTful API for Route Proposal and Group Formation Management - Columbia Point2Point Shuttle',
       contact: {
         name: 'API Support',
         email: 'support@example.com'
@@ -19,13 +19,13 @@ const options = {
       },
       {
         url: 'http://<your-gcp-vm-ip>:3002',
-        description: 'Production server (GCP)'
+        description: 'Production server (GCP VM)'
       }
     ],
     tags: [
       {
-        name: 'Orders',
-        description: 'Order management endpoints'
+        name: 'Routes',
+        description: 'Route proposal and management endpoints'
       },
       {
         name: 'Health',
@@ -34,83 +34,370 @@ const options = {
     ],
     components: {
       schemas: {
-        Order: {
+        Route: {
           type: 'object',
-          required: ['userId', 'items', 'totalAmount'],
+          required: ['from', 'to', 'schedule', 'semester', 'createdBy'],
           properties: {
             id: {
-              type: 'string',
-              description: 'Order ID (UUID)',
-              example: '123e4567-e89b-12d3-a456-426614174000'
-            },
-            userId: {
               type: 'integer',
-              description: 'User ID who placed the order',
+              description: 'Route ID',
               example: 1
             },
-            items: {
-              type: 'array',
-              description: 'List of order items',
-              items: {
-                type: 'object',
-                properties: {
-                  productId: {
-                    type: 'string',
-                    example: 'PROD-123'
-                  },
-                  productName: {
-                    type: 'string',
-                    example: 'Sample Product'
-                  },
-                  quantity: {
-                    type: 'integer',
-                    example: 2
-                  },
-                  price: {
-                    type: 'number',
-                    format: 'float',
-                    example: 29.99
-                  }
-                }
-              }
+            from: {
+              type: 'string',
+              description: 'Starting location',
+              example: 'Columbia University'
             },
-            totalAmount: {
-              type: 'number',
-              format: 'float',
-              description: 'Total order amount',
-              example: 59.98
+            to: {
+              type: 'string',
+              description: 'Destination location',
+              example: 'Flushing, Queens'
             },
             status: {
               type: 'string',
-              enum: ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'],
-              description: 'Order status',
-              example: 'pending'
+              enum: ['proposed', 'active', 'completed', 'cancelled'],
+              description: 'Route status',
+              example: 'proposed'
             },
-            shippingAddress: {
+            schedule: {
               type: 'object',
               properties: {
-                street: { type: 'string', example: '123 Main St' },
-                city: { type: 'string', example: 'San Francisco' },
-                state: { type: 'string', example: 'CA' },
-                zipCode: { type: 'string', example: '94102' },
-                country: { type: 'string', example: 'USA' }
+                days: {
+                  type: 'array',
+                  items: { 'type': 'string' },
+                  example: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
+                },
+                morningTime: {
+                  type: 'string',
+                  format: 'time',
+                  example: '08:00:00'
+                },
+                eveningTime: {
+                  type: 'string',
+                  format: 'time',
+                  example: '18:30:00'
+                }
               }
+            },
+            semester: {
+              type: 'string',
+              description: 'Academic semester',
+              example: 'Fall 2025'
+            },
+            currentMembers: {
+              type: 'integer',
+              description: 'Current number of members',
+              example: 8
+            },
+            requiredMembers: {
+              type: 'integer',
+              description: 'Required members to activate route',
+              example: 15
+            },
+            estimatedCost: {
+              type: 'number',
+              format: 'float',
+              description: 'Estimated cost per semester in USD',
+              example: 120.00
+            },
+            description: {
+              type: 'string',
+              description: 'Route description',
+              example: 'Daily shuttle service between Columbia and Flushing'
+            },
+            createdBy: {
+              type: 'integer',
+              description: 'User ID of route creator',
+              example: 1
+            },
+            version: {
+              type: 'integer',
+              description: 'Version number for ETag support',
+              example: 1
             },
             createdAt: {
               type: 'string',
               format: 'date-time',
-              description: 'Order creation timestamp'
+              description: 'Route creation timestamp'
             },
             updatedAt: {
               type: 'string',
               format: 'date-time',
-              description: 'Order last update timestamp'
+              description: 'Route last update timestamp'
+            },
+            links: {
+              type: 'object',
+              description: 'HATEOAS links',
+              properties: {
+                self: {
+                  type: 'string',
+                  example: '/routes/1'
+                },
+                members: {
+                  type: 'string',
+                  example: '/routes/1/members'
+                },
+                trips: {
+                  type: 'string',
+                  example: '/routes/1/trips'
+                },
+                subscriptions: {
+                  type: 'string',
+                  example: '/subscriptions?route_id=1'
+                }
+              }
+            }
+          }
+        },
+        RouteMember: {
+          type: 'object',
+          properties: {
+            id: {
+              type: 'integer',
+              description: 'User ID',
+              example: 1
+            },
+            email: {
+              type: 'string',
+              description: 'User email',
+              example: 'john.doe@columbia.edu'
+            },
+            firstName: {
+              type: 'string',
+              description: 'User first name',
+              example: 'John'
+            },
+            lastName: {
+              type: 'string',
+              description: 'User last name',
+              example: 'Doe'
+            },
+            homeArea: {
+              type: 'string',
+              description: 'User home area',
+              example: 'Flushing, Queens'
+            },
+            joinedAt: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Timestamp when user joined the route'
+            },
+            memberStatus: {
+              type: 'string',
+              enum: ['confirmed', 'pending', 'cancelled'],
+              description: 'Member status',
+              example: 'confirmed'
+            }
+          }
+        },
+        PaginatedRoutes: {
+          type: 'object',
+          properties: {
+            success: {
+              type: 'boolean',
+              example: true
+            },
+            routes: {
+              type: 'array',
+              items: {
+                $ref: '#/components/schemas/Route'
+              }
+            },
+            pagination: {
+              type: 'object',
+              properties: {
+                totalCount: {
+                  type: 'integer',
+                  example: 50
+                },
+                page: {
+                  type: 'integer',
+                  example: 1
+                },
+                pageSize: {
+                  type: 'integer',
+                  example: 20
+                },
+                totalPages: {
+                  type: 'integer',
+                  example: 3
+                },
+                hasNext: {
+                  type: 'boolean',
+                  example: true
+                },
+                hasPrev: {
+                  type: 'boolean',
+                  example: false
+                },
+                links: {
+                  type: 'object',
+                  properties: {
+                    self: {
+                      type: 'string',
+                      example: '/routes?page=1&page_size=20'
+                    },
+                    next: {
+                      type: 'string',
+                      example: '/routes?page=2&page_size=20'
+                    },
+                    prev: {
+                      type: 'string',
+                      nullable: true,
+                      example: null
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        SuccessRouteResponse: {
+          type: 'object',
+          properties: {
+            success: {
+              type: 'boolean',
+              example: true
+            },
+            route: {
+              $ref: '#/components/schemas/Route'
+            }
+          }
+        },
+        SuccessMessageResponse: {
+          type: 'object',
+          properties: {
+            success: {
+              type: 'boolean',
+              example: true
+            },
+            message: {
+              type: 'string',
+              example: 'Operation completed successfully'
+            }
+          }
+        },
+        SuccessJoinResponse: {
+          type: 'object',
+          properties: {
+            success: {
+              type: 'boolean',
+              example: true
+            },
+            message: {
+              type: 'string',
+              example: 'Successfully joined route'
+            },
+            route: {
+              $ref: '#/components/schemas/Route'
+            }
+          }
+        },
+        SuccessMembersResponse: {
+          type: 'object',
+          properties: {
+            success: {
+              type: 'boolean',
+              example: true
+            },
+            routeId: {
+              type: 'integer',
+              example: 1
+            },
+            totalMembers: {
+              type: 'integer',
+              example: 5
+            },
+            members: {
+              type: 'array',
+              items: {
+                $ref: '#/components/schemas/RouteMember'
+              }
+            }
+          }
+        },
+        ActivationTaskResponse: {
+          type: 'object',
+          properties: {
+            success: {
+              type: 'boolean',
+              example: true
+            },
+            taskId: {
+              type: 'string',
+              description: 'Unique task identifier',
+              example: 'activation-1-1732388400000'
+            },
+            status: {
+              type: 'string',
+              enum: ['pending'],
+              description: 'Task status (always pending on creation)',
+              example: 'pending'
+            },
+            statusUrl: {
+              type: 'string',
+              description: 'URL to poll for status updates',
+              example: '/api/route-activations/activation-1-1732388400000'
+            },
+            message: {
+              type: 'string',
+              example: 'Route activation has been queued for processing'
+            }
+          }
+        },
+        ActivationTaskStatus: {
+          type: 'object',
+          properties: {
+            success: {
+              type: 'boolean',
+              example: true
+            },
+            taskId: {
+              type: 'string',
+              description: 'Unique task identifier',
+              example: 'activation-1-1732388400000'
+            },
+            status: {
+              type: 'string',
+              enum: ['pending', 'success', 'failed'],
+              description: 'Task status',
+              example: 'pending'
+            },
+            routeId: {
+              type: 'integer',
+              description: 'Route ID being activated',
+              example: 1
+            },
+            startedAt: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Task start timestamp'
+            },
+            completedAt: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Task completion timestamp',
+              nullable: true
+            },
+            details: {
+              type: 'string',
+              description: 'Task details or error message',
+              example: 'Activation checks are running.'
+            },
+            route: {
+              $ref: '#/components/schemas/Route',
+              description: 'Updated route object (when status is success)',
+              nullable: true
             }
           }
         },
         Error: {
           type: 'object',
           properties: {
+            success: {
+              type: 'boolean',
+              example: false
+            },
             error: {
               type: 'string',
               example: 'Error message'
@@ -121,6 +408,43 @@ const options = {
             }
           }
         }
+      },
+      parameters: {
+        ETagHeader: {
+          name: 'If-Match',
+          in: 'header',
+          description: 'ETag value for conditional updates',
+          required: false,
+          schema: {
+            type: 'string'
+          }
+        }
+      },
+      responses: {
+        PreconditionFailed: {
+          description: 'Precondition Failed - ETag mismatch',
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  success: {
+                    type: 'boolean',
+                    example: false
+                  },
+                  error: {
+                    type: 'string',
+                    example: 'Precondition Failed'
+                  },
+                  message: {
+                    type: 'string',
+                    example: 'The route has been modified by another request. Please fetch the latest version and try again.'
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     }
   },
@@ -128,6 +452,4 @@ const options = {
 };
 
 const specs = swaggerJsdoc(options);
-
 module.exports = { specs };
-
