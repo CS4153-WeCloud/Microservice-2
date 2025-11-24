@@ -8,6 +8,7 @@ This service is part of the Columbia Point2Point shuttle system. It is responsib
 
 ## Demo
 
+- **Demo link:** [https://youtu.be/ESNG0ziZoPI](https://youtu.be/ESNG0ziZoPI)
 - **Production URL:** [http://34.123.236.40](http://34.123.236.40)
 - **API Documentation:** [http://34.123.236.40/api-docs](http://34.123.236.40/api-docs)
 
