@@ -46,8 +46,8 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
  *                   example: connected
  */
 app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'UP', 
+  res.json({
+    status: 'UP',
     service: 'route-group-service',  // CHANGED
     timestamp: new Date().toISOString(),
     database: 'connected'  // ADDED
@@ -118,7 +118,7 @@ app.use((req, res) => {
 // Error handling middleware - must be last
 app.use((err, req, res, next) => {
   console.error('Error:', err.stack);
-  res.status(err.status || 500).json({ 
+  res.status(err.status || 500).json({
     success: false,  // ADDED
     error: 'Internal Server Error',
     message: process.env.NODE_ENV === 'production' ? 'An error occurred' : err.message  // CHANGED

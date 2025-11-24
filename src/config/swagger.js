@@ -18,8 +18,8 @@ const options = {
         description: 'Development server'
       },
       {
-        url: 'http://<your-gcp-vm-ip>:3002',
-        description: 'Production server (GCP VM)'
+        url: 'http://34.123.236.40',
+        description: 'Production Server (GCP VM)'
       }
     ],
     tags: [
