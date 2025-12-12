@@ -16,16 +16,23 @@ if (isProduction && process.env.INSTANCE_CONNECTION_NAME) {
     // Production configuration for Cloud SQL using Unix Socket
     config.socketPath = `/cloudsql/${process.env.INSTANCE_CONNECTION_NAME}`;
 } else {
-    // Local development configuration
+    // TCP/IP connection (local or Cloud SQL public IP)
     config.host = process.env.DB_HOST || 'localhost';
     config.port = process.env.DB_PORT || 3306;
+    
+    // Enable SSL for Cloud SQL connections (required for public IP)
+    if (process.env.DB_HOST && process.env.DB_HOST !== 'localhost' && process.env.DB_HOST !== '127.0.0.1') {
+        config.ssl = {
+            rejectUnauthorized: false
+        };
+    }
 }
 
 console.log('Initializing database connection pool...');
-if (isProduction) {
-    console.log(`Connecting to Cloud SQL instance via socket: ${config.socketPath}`);
+if (config.socketPath) {
+    console.log(`Connecting to Cloud SQL via socket: ${config.socketPath}`);
 } else {
-    console.log(`Connecting to local database at ${config.host}:${config.port}`);
+    console.log(`Connecting to database at ${config.host}:${config.port}${config.ssl ? ' (SSL)' : ''}`);
 }
 
 const pool = mysql.createPool(config);
