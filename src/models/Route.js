@@ -42,7 +42,15 @@ function normalizeTime(timeValue) {
     return timeValue;
   }
   
-  // Extract time part using regex
+  // If in HH:mm format, add :00 for seconds
+  if (/^\d{1,2}:\d{2}$/.test(timeValue)) {
+    const parts = timeValue.split(':');
+    const hours = parts[0].padStart(2, '0');
+    const minutes = parts[1].padStart(2, '0');
+    return `${hours}:${minutes}:00`;
+  }
+  
+  // Extract time part using regex (HH:mm:ss)
   const timeMatch = timeValue.match(/(\d{2}):(\d{2}):(\d{2})/);
   if (timeMatch) {
     return timeMatch[0]; // Returns "HH:mm:ss"
