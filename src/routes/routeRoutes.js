@@ -542,6 +542,51 @@ router.patch('/:id/status', async (req, res) => {
 
 /**
  * @swagger
+ * /api/routes/user/{userId}:
+ *   get:
+ *     summary: Get routes a user has joined
+ *     tags: [Routes]
+ *     description: Get all routes where the user is a member (via route_members table)
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: User ID
+ *     responses:
+ *       200:
+ *         description: List of routes user has joined
+ *       500:
+ *         description: Server error
+ */
+router.get('/user/:userId', async (req, res) => {
+    try {
+        const userId = parseInt(req.params.userId, 10);
+        const routes = await Route.getRoutesByUser(userId);
+        
+        res.json({
+            success: true,
+            userId: userId,
+            totalRoutes: routes.length,
+            routes: routes,
+            _links: {
+                self: `/api/routes/user/${userId}`,
+                allRoutes: '/api/routes'
+            }
+        });
+    } catch (error) {
+        console.error(`GET /api/routes/user/${req.params.userId} error:`, error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to fetch user routes',
+            message: error.message
+        });
+    }
+});
+
+/**
+ * @swagger
  * /api/routes/{id}/join:
  *   post:
  *     summary: Join a route

@@ -339,12 +339,33 @@ class Route {
 
   /**
    * Increment member count when user joins
+   * Automatically activates route when currentMembers >= requiredMembers
    */
   static async incrementMembers(id) {
+    // First increment the member count
     await db.query(
       'UPDATE routes SET current_members = current_members + 1, version = version + 1, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
       [id]
     );
+    
+    // Check if route should be activated (currentMembers >= requiredMembers)
+    const [rows] = await db.query(
+      'SELECT current_members, required_members, status FROM routes WHERE id = ?',
+      [id]
+    );
+    
+    if (rows.length > 0) {
+      const { current_members, required_members, status } = rows[0];
+      // Activate route if it has enough members and is still proposed
+      if (status === 'proposed' && current_members >= required_members) {
+        await db.query(
+          'UPDATE routes SET status = ?, version = version + 1, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+          ['active', id]
+        );
+        console.log(`Route ${id} automatically activated: ${current_members}/${required_members} members`);
+      }
+    }
+    
     return this.findById(id);
   }
 
@@ -373,34 +394,49 @@ class Route {
   /**
    * Get all members of a route
    * Sprint 2 Requirement: Query parameters for sub-collections
+   * Note: Only returns member IDs since users table is in a different microservice
    */
   static async getMembers(routeId, filters = {}) {
-    let query = `
-      SELECT u.*, rm.joined_at, rm.status as member_status
-      FROM users u
-      INNER JOIN route_members rm ON u.id = rm.user_id
-      WHERE rm.route_id = ?
-    `;
+    let query = 'SELECT * FROM route_members WHERE route_id = ?';
     const params = [routeId];
     
     // Apply filters
     if (filters.status) {
-      query += ' AND rm.status = ?';
+      query += ' AND status = ?';
       params.push(filters.status);
     }
     
-    query += ' ORDER BY rm.joined_at ASC';
+    query += ' ORDER BY joined_at ASC';
     
     const [rows] = await db.query(query, params);
     return rows.map(row => ({
       id: row.id,
-      email: row.email,
-      firstName: row.first_name,
-      lastName: row.last_name,
-      homeArea: row.home_area,
+      memberId: row.id,
+      userId: row.user_id,
+      routeId: row.route_id,
+      status: row.status,
       joinedAt: row.joined_at,
-      memberStatus: row.member_status
+      _links: {
+        self: `/api/routes/${row.route_id}/members/${row.id}`,
+        user: `/api/users/${row.user_id}`,
+        route: `/api/routes/${row.route_id}`
+      }
     }));
+  }
+
+  /**
+   * Get all routes a user has joined (as member)
+   */
+  static async getRoutesByUser(userId) {
+    const [rows] = await db.query(
+      `SELECT r.*, rm.joined_at as member_joined_at, rm.status as member_status
+       FROM routes r
+       INNER JOIN route_members rm ON r.id = rm.route_id
+       WHERE rm.user_id = ?
+       ORDER BY rm.joined_at DESC`,
+      [userId]
+    );
+    return rows.map(row => this.formatRoute(row));
   }
 
   /**
