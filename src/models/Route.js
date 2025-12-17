@@ -436,7 +436,7 @@ class Route {
        ORDER BY rm.joined_at DESC`,
       [userId]
     );
-    return rows.map(row => this.formatRoute(row));
+    return rows.map(row => toCamelCase(row));
   }
 
   /**
