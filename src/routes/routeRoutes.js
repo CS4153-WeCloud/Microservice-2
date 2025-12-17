@@ -686,7 +686,8 @@ router.post('/:id/join', async (req, res) => {
  */
 router.delete('/:id/leave', async (req, res) => {
     try {
-        const { userId } = req.query;
+        // Support both query param and body
+        const userId = req.query.userId || req.body?.userId;
 
         if (!userId) {
             return res.status(400).json({
