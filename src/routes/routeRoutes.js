@@ -886,7 +886,7 @@ router.post('/:id/activate', async (req, res) => {
             }
         }, 3000);
 
-        const statusUrl = `/api/route-activations/${taskId}`;
+        const statusUrl = `/api/routes/route-activations/${taskId}`;
 
         res.status(202)
             .setHeader('Location', statusUrl)
