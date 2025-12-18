@@ -564,7 +564,7 @@ router.get('/user/:userId', async (req, res) => {
     try {
         const userId = parseInt(req.params.userId, 10);
         const routes = await Route.getRoutesByUser(userId);
-        
+
         res.json({
             success: true,
             userId: userId,
@@ -909,7 +909,7 @@ router.post('/:id/activate', async (req, res) => {
 
 /**
  * @swagger
- * /api/route-activations/{taskId}:
+ * /api/routes/route-activations/{taskId}:
  *   get:
  *     summary: Get activation task status
  *     tags: [Routes]
